@@ -1,0 +1,40 @@
+commit e6ac9dd44efdbac87523a92793f9500295c6c2b0
+Author: Douglas Holm <161740744+douglasholm@users.noreply.github.com>
+Date:   Tue Apr 7 19:20:46 2026 +0200
+
+    fix: enable export of scenes with KTX2 compressed textures (#5142)
+    
+    * fix: enable export of scenes with KTX2 compressed textures
+    
+    Call setTextureUtils() on GLTFExporter to decompress CompressedTexture
+    instances before serialization. The decompress wrapper preserves the
+    original texture's flipY to prevent orientation issues during export.
+    
+    Fixes #5010.
+    
+    * fix: enable export of scenes with KTX2 compressed textures
+    
+    Replace Three.js's decompress() with a custom implementation that
+    renders compressed textures to a WebGLRenderTarget instead of the
+    renderer's main canvas. This avoids corrupting model-viewer's shared
+    renderer state, which caused the model to disappear after export.
+    
+    The custom decompressTexture() function:
+    - Uses an off-screen WebGLRenderTarget (no canvas corruption)
+    - Saves and restores renderer toneMapping state
+    - Handles sRGB color space conversion in the shader
+    - Preserves the original texture's flipY property
+    
+    Also strengthen the KTX2 export test to verify the scene remains
+    intact (materials, dimensions) after export, before re-importing.
+    
+    * fix: simplify KTX2 export using Three.js native decompress with isolated context
+    
+    Replace custom decompressTexture() (shaders, render targets, pixel readback)
+    with Three.js's built-in decompress() from WebGLTextureUtils, passing no
+    renderer so Three creates and disposes a temporary WebGL context. This avoids
+    corrupting model-viewer's shared canvas without maintaining custom GPU code.
+    
+    ---------
+    
+    Co-authored-by: Douglas Holm <161740744+MyrqvistDouglas@users.noreply.github.com>
